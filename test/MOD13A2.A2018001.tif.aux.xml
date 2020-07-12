@@ -11,12 +11,13 @@
       </HistItem>
     </Histograms>
     <Metadata>
-      <MDI key="STATISTICS_MINIMUM">-1696</MDI>
       <MDI key="STATISTICS_MAXIMUM">8546</MDI>
       <MDI key="STATISTICS_MEAN">6596.0604786222</MDI>
-      <MDI key="STATISTICS_STDDEV">1425.088869983</MDI>
+      <MDI key="STATISTICS_MINIMUM">-1696</MDI>
       <MDI key="STATISTICS_SKIPFACTORX">1</MDI>
       <MDI key="STATISTICS_SKIPFACTORY">1</MDI>
+      <MDI key="STATISTICS_STDDEV">1425.017521002</MDI>
+      <MDI key="STATISTICS_VALID_PERCENT">59</MDI>
     </Metadata>
   </PAMRasterBand>
 </PAMDataset>

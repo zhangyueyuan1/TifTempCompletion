@@ -12,7 +12,7 @@ gdal.AllRegister()
 target = "./test/A2018015_lst.tif"
 
 # Completion Data
-completion = ""
+completion = "./test/A2018017_dagraded_v3.tif"
 
 # Vegedation Data
 vege = ""
@@ -29,12 +29,14 @@ def calVthd():
 def findNullCell(target, nullValue):
     dataset1 = gdal.Open(target)
     band = dataset1.GetRasterBand(1)
-    buffer = band.ReadAsArray(0, 0, dataset1.RasterXSize, dataset1.RasterYSize)
     nullcells = []
-    for rowIndex in range(len(buffer)):
-        for cellIndex in range(len(buffer[rowIndex])):
-            if buffer[rowIndex][cellIndex] == nullValue:
+    for rowIndex in range(dataset1.RasterYSize):
+        for cellIndex in range(dataset1.RasterXSize):
+            cell = band.ReadAsArray(cellIndex, rowIndex, 1, 1)[0][0]
+            if cell == nullValue:
                 nullcells.append([rowIndex, cellIndex])
     return nullcells
 
 ncells = findNullCell(target, 65535)
+
+print(ncells)
