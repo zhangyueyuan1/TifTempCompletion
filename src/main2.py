@@ -11,40 +11,42 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 with rasterio.open(r"F:\GitHubCollection\TifTempCompletion\test\A2018017_dagraded_v3.tif") as src:
     lst=src.read(1, masked=True)
+    lst=lst*0.02
 
 with rasterio.open(r"F:\GitHubCollection\TifTempCompletion\test\A2018015_lst.tif")as src2:
     lst_ref=src2.read(1, masked=True)
-    #plt.imshow(lst)   
+    lst_ref=lst_ref*0.02  
     
 with rasterio.open(r"F:\GitHubCollection\TifTempCompletion\test\MOD13A2.A2018001.tif") as src:
     ndvi=src.read(1, masked=True)
+    ndvi=ndvi*0.0001
     #plt.imshow(ndvi) 
 
 whole_x = ndvi.shape[0]
 whole_y = ndvi.shape[1]
 
 masked=lst[0][0]
-Null_pixel_lst=np.where(lst == masked)
-Valid_pixel_lst=np.where(lst<60000)
+# Null_pixel_lst=np.where(lst == masked)
+# Valid_pixel_lst=np.where(lst<60000)
 
-Null_pixel_ref=np.where(lst_ref == masked)
-Valid_pixel_ref=np.where(lst_ref <60000)
+# Null_pixel_ref=np.where(lst_ref == masked)
+# Valid_pixel_ref=np.where(lst_ref <60000)
 
-Null_pixel_ndvi=np.where(ndvi == masked)
-Valid_pixel_ndvi=np.where(ndvi>0)
+# Null_pixel_ndvi=np.where(ndvi == masked)
+# Valid_pixel_ndvi=np.where(ndvi>-1)
 
 def find_similar(center_x_min, center_x_max, center_y_min, center_y_max, window):
     window_ts_value1 = lst_ref[center_x_min:center_x_max, center_y_min: center_y_max]
-    window_ts_value2 = window_ts_value[Valid_pixel_ref] #参考lst图层窗口内的有效值
+    window_ts_value2 = window_ts_value1[np.where(window_ts_value1 != masked)] #参考lst图层窗口内的有效值
     
     window_ndvi_value1 = ndvi[center_x_min:center_x_max, center_y_min: center_y_max]
-    window_ndvi_value2 = window_ndvi_value[Valid_pixel_ndvi] #窗口内的ndvi有效值
+    window_ndvi_value2 = window_ndvi_value1[np.where(window_ndvi_value1 != masked)] #窗口内的ndvi有效值
     
     ts_predict_block1 = lst[center_x_min:center_x_max, center_y_min: center_y_max]
-    ts_predict_block2 = ts_predict_block[Valid_pixel_lst]   #预测lst图层窗口内的有效值
+    ts_predict_block2 = ts_predict_block1[np.where(ts_predict_block1 != masked)]   #预测lst图层窗口内的有效值
 
-    Mean_ts_value=window_ts_value2*0 + np.nanmean(window_ts_value2)
-    Mean_ndvi_value=window_ndvi_value2*0 + np.nanmean(window_ndvi_value2)
+    Mean_ts_value = window_ts_value2 * 0 + np.nanmean(window_ts_value2)
+    Mean_ndvi_value = window_ndvi_value2 * 0 + np.nanmean(window_ndvi_value2)
     
     if (window_ts_value2.shape[0]) > 0:                 #如果存在有效像元
         RMSE_ts=sqrt(mean_squared_error(window_ts_value2.reshape(-1,1), Mean_ts_value.reshape(-1,1)))
