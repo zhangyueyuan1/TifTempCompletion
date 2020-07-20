@@ -22,8 +22,8 @@ with rasterio.open(r"F:\GitHubCollection\TifTempCompletion\test\MOD13A2.A2018001
     ndvi=ndvi*0.0001
     #plt.imshow(ndvi) 
 
-whole_x = ndvi.shape[0]
-whole_y = ndvi.shape[1]
+whole_x = ndvi.shape[0]    #93行
+whole_y = ndvi.shape[1]    #182列
 
 masked=lst[0][0]
 # Null_pixel_lst=np.where(lst == masked)

@@ -4,22 +4,22 @@
 # Description: complete temperature data in Tiff
 
 import gdal
-import zyytif
+#import zyytif
 import math
 
 gdal.AllRegister()
 
 # Target Data
-target = "./test/A2018017_dagraded_v3.tif"
+target = "F:\\GitHubCollection\\TifTempCompletion\\test\\pro3_A2018017_dagraded_v3.tif"
 
 # Reference Data
-reference = "./test/A2018015_lst.tif"
+reference = "F:\\GitHubCollection\\TifTempCompletion\\test\\pro3_A2018015_lst.tif"
 
 # Vegetation Data
-vege = "./test/MOD13A2.A2018001.tif"
+vege = "F:\\GitHubCollection\\TifTempCompletion\\test\\pro3_MOD13A2.A2018001.tif"
 
 # Null Value
-null = 65535
+null = -3.40282346639e+038   #-3.40282346639e+038
 
 # Pairs Number
 pairsNum = 8
@@ -40,19 +40,19 @@ def findPairs(target, reference, vege):
             win_reference, clocation_r, adjust = getWindowByLocation(reference, ncellitem, currentwin)
 
             ept_r = reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
-            if ept_r == 65535:
+            if ept_r == -3.40282346639e+038:
                 continue
             ept_v = vege.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
 
             # similar cells in reference window
             win_vege, clocation_v, adjust_v = getWindowByLocation(vege, ncellitem, currentwin)
             
-            r_ave = getAvergae(win_reference, 65535, ept_r)
-            tthd = getTVthd(win_reference, 65535, r_ave, ept_r)
+            r_ave = getAvergae(win_reference, -3.40282346639e+038, ept_r)
+            tthd = getTVthd(win_reference, -3.40282346639e+038, r_ave, ept_r)
             print(tthd)
 
-            v_ave = getAvergae(win_vege, -32768, ept_v)
-            vthd = getTVthd(win_vege, -32768, v_ave, ept_v)
+            v_ave = getAvergae(win_vege, -3.40282346639e+038, ept_v)
+            vthd = getTVthd(win_vege, -3.40282346639e+038, v_ave, ept_v)
             print(vthd)
 
             cells_r = getSimilar(win_reference, clocation_r, ept_r, tthd)
