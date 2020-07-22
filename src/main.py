@@ -10,16 +10,16 @@ import math
 gdal.AllRegister()
 
 # Target Data
-target = "F:\\GitHubCollection\\TifTempCompletion\\test\\pro3_A2018017_dagraded_v3.tif"
+target = "./test/pro3_A2018017_dagraded_v3.tif"
 
 # Reference Data
-reference = "F:\\GitHubCollection\\TifTempCompletion\\test\\pro3_A2018015_lst.tif"
+reference = "./test/pro3_A2018015_lst.tif"
 
 # Vegetation Data
-vege = "F:\\GitHubCollection\\TifTempCompletion\\test\\pro3_MOD13A2.A2018001.tif"
+vege = "./test/pro3_MOD13A2.A2018001.tif"
 
 # Null Value
-null = -3.40282346639e+038   #-3.40282346639e+038
+null = -3e+038   #-3.40282346639e+038
 
 # Pairs Number
 pairsNum = 8
@@ -33,26 +33,28 @@ def abs(value):
     return value
 
 def findPairs(target, reference, vege):
-    nullcells = findNullCell(target, null)
+    nullcells = findNullCell2(target, null)
     for ncellitem in nullcells:
         for currentwin in winlist:
-            win_target = getWindowByLocation(target, ncellitem, currentwin)
+            win_target, clocation_t, adjust_t = getWindowByLocation(target, ncellitem, currentwin)
             win_reference, clocation_r, adjust = getWindowByLocation(reference, ncellitem, currentwin)
 
             ept_r = reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
-            if ept_r == -3.40282346639e+038:
+            if ept_r < null:
                 continue
             ept_v = vege.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
+            
+            win_reference = combineNull(win_reference, win_target, null, clocation_r)
 
             # similar cells in reference window
             win_vege, clocation_v, adjust_v = getWindowByLocation(vege, ncellitem, currentwin)
             
-            r_ave = getAvergae(win_reference, -3.40282346639e+038, ept_r)
-            tthd = getTVthd(win_reference, -3.40282346639e+038, r_ave, ept_r)
+            r_ave = getAvergae(win_reference, null, ept_r)
+            tthd = getTVthd(win_reference, null, r_ave, ept_r)
             print(tthd)
 
-            v_ave = getAvergae(win_vege, -3.40282346639e+038, ept_v)
-            vthd = getTVthd(win_vege, -3.40282346639e+038, v_ave, ept_v)
+            v_ave = getAvergae(win_vege, null, ept_v)
+            vthd = getTVthd(win_vege, -null, v_ave, ept_v)
             print(vthd)
 
             cells_r = getSimilar(win_reference, clocation_r, ept_r, tthd)
@@ -74,7 +76,15 @@ def findPairs(target, reference, vege):
                     "pairs" : common_ad
                 }
     return []
-                
+
+def combineNull(target, reference, null, eptLocation):
+    for yIndex in range(len(target)):
+        for xIndex in range(len(reference)):
+            if yIndex == eptLocation[0] and xIndex == eptLocation[1]:
+                continue
+            if reference[yIndex][xIndex] < null:
+                target[yIndex][xIndex] = reference[yIndex][xIndex]
+    return target
 
 def findCommon(win1, win2):
     common = []
@@ -99,7 +109,7 @@ def getAvergae(win, null, ept):
     count = -1
     for yIndex in range(len(win)):
         for xIndex in range(len(win[yIndex])):
-            if win[yIndex][xIndex] == null:
+            if win[yIndex][xIndex] < null:
                 continue
             sum = sum + win[yIndex][xIndex]
             count = count + 1
@@ -109,12 +119,22 @@ def getAvergae(win, null, ept):
     return ave
 
 
+def getAvergaeByLocation(band, locations):
+    sum = 0
+    count = 0
+    for lct in locations:
+        sum = sum + band.ReadAsArray(lct[0], lct[1], 1, 1)[0][0]
+        count = count + 1
+    ave = sum/count
+    return ave
+
+
 def getTVthd(win, null, ave, ept):
     sum = 0
     count = -1
     for row in win:
         for cell in row:
-            if cell == null:
+            if cell < null:
                 continue
             sum = sum + (cell - ave)*(cell - ave)
             count = count + 1
@@ -133,6 +153,15 @@ def findNullCell(band, nullValue):
                 nullcells.append([cellIndex, rowIndex])
     return nullcells
 
+def findNullCell2(band, nullValue):
+    nullcells = []
+    for rowIndex in range(band.YSize):
+        for cellIndex in range(band.XSize):
+            cell = band.ReadAsArray(cellIndex, rowIndex, 1, 1)[0][0]
+            if cell < nullValue:
+                nullcells.append([cellIndex, rowIndex])
+    return nullcells
+
 #! get window cells
 #! The size must be odd number
 def getWindowByLocation(band, location, size):
@@ -146,11 +175,11 @@ def getWindowByLocation(band, location, size):
     ySize = size
     if xStart < 0:
         xSize = xStart + xSize
-        clocation[0] = clocation[0] + xSize
+        clocation[0] = clocation[0] + xStart
         xStart = 0
     if yStart < 0:
         ySize = yStart + ySize
-        clocation[0] = clocation[0] + xSize
+        clocation[1] = clocation[1] + yStart
         yStart = 0
     win = band.ReadAsArray(xStart, yStart, xSize, ySize)
 
@@ -174,6 +203,25 @@ def getDi(band_r, band_v, location, clocation, trans):
 
     return abs1*abs2*dis
 
+def getWi(dis):
+    wis = []
+
+    sum = 0
+    for di in dis:
+        sum = sum + (1/di)
+
+    for di in dis:
+        wi = (1/di)/sum
+        wis.append(wi)
+
+    return wis
+
+def getA():
+    return 0.1
+
+def getB():
+    return 0.1
+
 #! Start below
 
 # Get bands
@@ -195,6 +243,19 @@ trans = [trans[0], trans[3], trans[1], trans[5]]
 pairs = findPairs(band_target, band_reference, band_vege)
 
 clocation = pairs["clocation"]
+dis = []
 for pair in pairs["pairs"]:
     di = getDi(band_reference, band_vege, pair, clocation, trans)
-    print(di)
+    dis.append(di)
+
+wis = getWi(dis)
+
+print(dis)
+print(wis)
+
+T_ = getAvergaeByLocation(band_target, pairs["pairs"])
+TD_ = getAvergaeByLocation(band_reference, pairs["pairs"])
+
+print(T_)
+print(TD_)
+
