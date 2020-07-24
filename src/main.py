@@ -32,50 +32,49 @@ def abs(value):
         return -value
     return value
 
-def findPairs(target, reference, vege):
-    nullcells = findNullCell2(target, null)
-    for ncellitem in nullcells:
-        for currentwin in winlist:
-            win_target, clocation_t, adjust_t = getWindowByLocation(target, ncellitem, currentwin)
-            win_reference, clocation_r, adjust = getWindowByLocation(reference, ncellitem, currentwin)
+def findPairs(target, reference, vege, ncellitem):
+    for currentwin in winlist:
+        win_target, clocation_t, adjust_t = getWindowByLocation(target, ncellitem, currentwin)
+        win_reference, clocation_r, adjust = getWindowByLocation(reference, ncellitem, currentwin)
 
-            ept_r = reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
-            if ept_r < null:
-                continue
-            ept_v = vege.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
-            
-            win_reference = combineNull(win_reference, win_target, null, clocation_r)
+        ept_r = reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
+        ept_v = vege.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
+        
+        win_reference = combineNull(win_reference, win_target, null, clocation_r)
 
-            # similar cells in reference window
-            win_vege, clocation_v, adjust_v = getWindowByLocation(vege, ncellitem, currentwin)
-            
-            r_ave = getAvergae(win_reference, null, ept_r)
-            tthd = getTVthd(win_reference, null, r_ave, ept_r)
-            print(tthd)
+        # similar cells in reference window
+        win_vege, clocation_v, adjust_v = getWindowByLocation(vege, ncellitem, currentwin)
+        
+        r_ave = getAvergae(win_reference, null, ept_r)
+        tthd = getTVthd(win_reference, null, r_ave, ept_r)
+        print(tthd)
 
-            v_ave = getAvergae(win_vege, null, ept_v)
-            vthd = getTVthd(win_vege, -null, v_ave, ept_v)
-            print(vthd)
+        v_ave = getAvergae(win_vege, null, ept_v)
+        vthd = getTVthd(win_vege, -null, v_ave, ept_v)
+        print(vthd)
 
-            cells_r = getSimilar(win_reference, clocation_r, ept_r, tthd)
-            cells_v = getSimilar(win_vege, clocation_v, ept_v, vthd)
+        cells_r = getSimilar(win_reference, clocation_r, ept_r, tthd)
+        cells_v = getSimilar(win_vege, clocation_v, ept_v, vthd)
 
-            common = findCommon(cells_r, cells_v)
+        common = findCommon(cells_r, cells_v)
 
-            print(common)
+        print(common)
 
-            if len(common) > pairsNum:
-                common_ad = []
-                print("Bingo!")
-                for com in common:
-                    com[0] = com[0] + adjust[0]
-                    com[1] = com[1] + adjust[1]
-                    common_ad.append(com)
-                return {
-                    "clocation" : [ncellitem[0], ncellitem[1]],
-                    "pairs" : common_ad
-                }
-    return []
+        if len(common) > pairsNum:
+            common_ad = []
+            print("Bingo!")
+            for com in common:
+                com[0] = com[0] + adjust[0]
+                com[1] = com[1] + adjust[1]
+                common_ad.append(com)
+            return {
+                "clocation" : [ncellitem[0], ncellitem[1]],
+                "pairs" : common_ad
+            }
+    return {
+        "clocation" : [0, 0],
+        "pairs" : []
+        }
 
 def combineNull(target, reference, null, eptLocation):
     for yIndex in range(len(target)):
@@ -253,19 +252,34 @@ trans = dataset_target.GetGeoTransform()
 
 trans = [trans[0], trans[3], trans[1], trans[5]]
 
-pairs = findPairs(band_target, band_reference, band_vege)
 
-clocation = pairs["clocation"]
-dis = []
-for pair in pairs["pairs"]:
-    di = getDi(band_reference, band_vege, pair, clocation, trans)
-    dis.append(di)
+nullcells = findNullCell2(band_target, null)
+for ncellitem in nullcells:
+    print("Null cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
 
-wis = getWi(dis)
+    if band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0] < null:
+        print("Cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference in NULL!")
+        continue
 
-print(dis)
-print(wis)
+    pairs = findPairs(band_target, band_reference, band_vege, ncellitem)
 
-a,b = getAB(band_target, band_reference, pairs["pairs"], wis)
-print(a)
-print(b)
+    clocation = pairs["clocation"]
+    dis = []
+    for pair in pairs["pairs"]:
+        di = getDi(band_reference, band_vege, pair, clocation, trans)
+        dis.append(di)
+
+    wis = getWi(dis)
+
+    print(dis)
+    print(wis)
+
+    a,b = getAB(band_target, band_reference, pairs["pairs"], wis)
+    print(a)
+    print(b)
+    
+    nullcell_r = band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
+
+    completion = a*nullcell_r + b
+
+    print(completion)
