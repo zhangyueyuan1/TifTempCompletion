@@ -216,11 +216,24 @@ def getWi(dis):
 
     return wis
 
-def getA():
-    return 0.1
+def getAB(band_target, band_reference, pairs, wis):
 
-def getB():
-    return 0.1
+    Ts_ = getAvergaeByLocation(band_target, pairs)
+    Tsd_ = getAvergaeByLocation(band_reference, pairs)
+
+    sum_up = 0
+    sum_bottom = 0
+
+    for index in range(len(pairs)):
+        Tsi = band_target.ReadAsArray(pairs[index][0], pairs[index][1], 1, 1)[0][0]
+        Tsdi = band_reference.ReadAsArray(pairs[index][0], pairs[index][1], 1, 1)[0][0]
+        sum_up = sum_up + wis[index]*(Tsi - Ts_)*(Tsdi - Tsd_)
+        sum_bottom = wis[index]*(Tsdi - Tsd_)*(Tsdi - Tsd_)
+
+    a = sum_up/sum_bottom
+    b = Ts_ - a*Tsd_
+    return a,b
+
 
 #! Start below
 
@@ -253,9 +266,6 @@ wis = getWi(dis)
 print(dis)
 print(wis)
 
-T_ = getAvergaeByLocation(band_target, pairs["pairs"])
-TD_ = getAvergaeByLocation(band_reference, pairs["pairs"])
-
-print(T_)
-print(TD_)
-
+a,b = getAB(band_target, band_reference, pairs["pairs"], wis)
+print(a)
+print(b)
