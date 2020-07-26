@@ -10,13 +10,13 @@ import math
 gdal.AllRegister()
 
 # Target Data
-target = "./test/pro3_A2018017_dagraded_v3.tif"
+target = "./test/WGS_A2018017_dagraded_v3.tif"
 
 # Reference Data
-reference = "./test/pro3_A2018015_lst.tif"
+reference = "./test/WGS_A2018015_lst.tif"
 
 # Vegetation Data
-vege = "./test/pro3_MOD13A2.A2018001.tif"
+vege = "./test/WGS_MOD13A2.A2018001.tif"
 
 # Null Value
 null = -3e+038   #-3.40282346639e+038
@@ -50,7 +50,7 @@ def findPairs(target, reference, vege, ncellitem):
         print(tthd)
 
         v_ave = getAvergae(win_vege, null, ept_v)
-        vthd = getTVthd(win_vege, -null, v_ave, ept_v)
+        vthd = getTVthd(win_vege, null, v_ave, ept_v)
         print(vthd)
 
         cells_r = getSimilar(win_reference, clocation_r, ept_r, tthd)
@@ -64,9 +64,10 @@ def findPairs(target, reference, vege, ncellitem):
             common_ad = []
             print("Bingo!")
             for com in common:
-                com[0] = com[0] + adjust[0]
-                com[1] = com[1] + adjust[1]
-                common_ad.append(com)
+                com_n = [0, 0]
+                com_n[0] = com[1] + adjust[0]
+                com_n[1] = com[0] + adjust[1]
+                common_ad.append(com_n)
             return {
                 "clocation" : [ncellitem[0], ncellitem[1]],
                 "pairs" : common_ad
@@ -99,6 +100,8 @@ def getSimilar(win, clocation, cvalue, thd):
         for xIndex in range(len(win[yIndex])):
             if yIndex == clocation[0] and xIndex == clocation[1]:
                 continue
+            if win[yIndex][xIndex] < null:
+                continue
             if abs(win[yIndex][xIndex] - cvalue) < thd:
                 cells.append([yIndex, xIndex])
     return cells
@@ -122,7 +125,9 @@ def getAvergaeByLocation(band, locations):
     sum = 0
     count = 0
     for lct in locations:
-        sum = sum + band.ReadAsArray(lct[0], lct[1], 1, 1)[0][0]
+        cellvalue = band.ReadAsArray(lct[0], lct[1], 1, 1)[0][0]
+        print(cellvalue)
+        sum = sum + cellvalue
         count = count + 1
     ave = sum/count
     return ave
@@ -265,6 +270,10 @@ for ncellitem in nullcells:
 
     pairs = findPairs(band_target, band_reference, band_vege, ncellitem)
 
+    for pair in pairs["pairs"]:
+        print(str(band_reference.ReadAsArray(pair[0], pair[1], 1, 1)[0][0]))
+    for pair in pairs["pairs"]:
+        print(str(band_target.ReadAsArray(pair[0], pair[1], 1, 1)[0][0]))
     clocation = pairs["clocation"]
     dis = []
     for pair in pairs["pairs"]:
