@@ -189,25 +189,27 @@ def getWindowByLocation(band, location, size):
 def getDi(band_r, band_v, location, clocation, trans):
     ts0_ = band_r.ReadAsArray(clocation[0], clocation[1], 1, 1)[0][0]
     tsi_ = band_r.ReadAsArray(location[0], location[1], 1, 1)[0][0]
-    abs1 = abs(ts0_ - tsi_ + 0.001)
+    abs1 = round(abs(ts0_ - tsi_ + 0.001), 6)
     
     vs0_ = band_v.ReadAsArray(clocation[0], clocation[1], 1, 1)[0][0]
     vsi_ = band_v.ReadAsArray(location[0], location[1], 1, 1)[0][0]
-    abs2 = abs(vs0_ - vsi_ + 0.001)
+    abs2 = round(abs(vs0_ - vsi_ + 0.001), 6)
 
     local_r = [trans[0] + (location[0] + 0.5) * trans[2], trans[1] + (location[1] + 0.5) * trans[3]]
     local_c = [trans[0] + (clocation[0] + 0.5) * trans[2], trans[1] + (clocation[1] + 0.5) * trans[3]]
 
-    dis = (local_r[0] - local_c[0])*(local_r[0] - local_c[0]) + (local_r[1] - local_c[1])*(local_r[1] - local_c[1])
+    dis = round((local_r[0] - local_c[0])*(local_r[0] - local_c[0]) + (local_r[1] - local_c[1])*(local_r[1] - local_c[1]), 6)
 
-    return abs1*abs2*dis
+    di = (abs1) * (abs2) * (dis)
+
+    return di
 
 def getWi(dis):
     wis = []
 
     sum = 0
     for di in dis:
-        sum = sum + (1/di)
+        sum = sum + round((1/di), 6)
 
     for di in dis:
         wi = (1/di)/sum
@@ -248,7 +250,7 @@ dataset_vege = gdal.Open(vege)
 band_vege = dataset_vege.GetRasterBand(1)
 
 trans = dataset_target.GetGeoTransform()
-# print(dataset_target.GetProjection())
+print(dataset_target.GetProjection())
 
 trans = [trans[0], trans[3], trans[1], trans[5]]
 
@@ -275,8 +277,8 @@ for ncellitem in nullcells:
     print(wis)
 
     a,b = getAB(band_target, band_reference, pairs["pairs"], wis)
-    print(a)
-    print(b)
+    print("a : " + str(a))
+    print("b : " + str(b))
     
     nullcell_r = band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
 
