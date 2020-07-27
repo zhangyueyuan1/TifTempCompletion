@@ -10,13 +10,13 @@ import math
 gdal.AllRegister()
 
 # Target Data
-target = "./test/WGS_A2018017_dagraded_v3.tif"
+target = "./test/pro3_A2018017_dagraded_v3.tif"
 
 # Reference Data
-reference = "./test/WGS_A2018015_lst.tif"
+reference = "./test/pro3_A2018015_lst.tif"
 
 # Vegetation Data
-vege = "./test/WGS_MOD13A2.A2018001.tif"
+vege = "./test/pro3_MOD13A2.A2018001.tif"
 
 # Null Value
 null = -3e+038   #-3.40282346639e+038
@@ -25,7 +25,7 @@ null = -3e+038   #-3.40282346639e+038
 pairsNum = 8
 
 # Window Size List
-winlist = [5, 7, 9, 11, 13, 15, 17, 19]
+winlist = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29]
 
 def abs(value):
     if value < 0:
@@ -234,7 +234,7 @@ def getAB(band_target, band_reference, pairs, wis):
         Tsi = band_target.ReadAsArray(pairs[index][0], pairs[index][1], 1, 1)[0][0]
         Tsdi = band_reference.ReadAsArray(pairs[index][0], pairs[index][1], 1, 1)[0][0]
         sum_up = sum_up + wis[index]*(Tsi - Ts_)*(Tsdi - Tsd_)
-        sum_bottom = wis[index]*(Tsdi - Tsd_)*(Tsdi - Tsd_)
+        sum_bottom = sum_bottom + wis[index]*(Tsdi - Tsd_)*(Tsdi - Tsd_)
 
     a = sum_up/sum_bottom
     b = Ts_ - a*Tsd_
