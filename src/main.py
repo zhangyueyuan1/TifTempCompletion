@@ -4,28 +4,30 @@
 # Description: complete temperature data in Tiff
 
 import gdal
-#import zyytif
+import zyytif
 import math
+import numpy as np
 
 gdal.AllRegister()
 
-# Target Data
+#! Target Data
 target = "./test/pro3_A2018017_dagraded_v3.tif"
 
-# Reference Data
+#! Reference Data
 reference = "./test/pro3_A2018015_lst.tif"
 
-# Vegetation Data
+#! Vegetation Data
 vege = "./test/pro3_MOD13A2.A2018001.tif"
 
-# Null Value
+#! Null Value
 null = -3e+038   #-3.40282346639e+038
 
-# Pairs Number
-pairsNum = 8
+#! Pairs Number
+pairsNum = 7
 
-# Window Size List
-winlist = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29]
+#! Max window size
+# range_max = max(band_target.XSize, band_target.YSize)
+range_max = 25
 
 def abs(value):
     if value < 0:
@@ -33,6 +35,7 @@ def abs(value):
     return value
 
 def findPairs(target, reference, vege, ncellitem):
+    leastPairs = []
     for currentwin in winlist:
         win_target, clocation_t, adjust_t = getWindowByLocation(target, ncellitem, currentwin)
         win_reference, clocation_r, adjust = getWindowByLocation(reference, ncellitem, currentwin)
@@ -47,22 +50,22 @@ def findPairs(target, reference, vege, ncellitem):
         
         r_ave = getAvergae(win_reference, null, ept_r)
         tthd = getTVthd(win_reference, null, r_ave, ept_r)
-        print(tthd)
+        # print(tthd)
 
         v_ave = getAvergae(win_vege, null, ept_v)
         vthd = getTVthd(win_vege, null, v_ave, ept_v)
-        print(vthd)
+        # print(vthd)
 
         cells_r = getSimilar(win_reference, clocation_r, ept_r, tthd)
         cells_v = getSimilar(win_vege, clocation_v, ept_v, vthd)
 
         common = findCommon(cells_r, cells_v)
 
-        print(common)
+        # print(common)
 
         if len(common) > pairsNum:
             common_ad = []
-            print("Bingo!")
+            # print("Bingo!")
             for com in common:
                 com_n = [0, 0]
                 com_n[0] = com[1] + adjust[0]
@@ -72,9 +75,18 @@ def findPairs(target, reference, vege, ncellitem):
                 "clocation" : [ncellitem[0], ncellitem[1]],
                 "pairs" : common_ad
             }
+        elif len(common) > 2:
+            common_ad = []
+            # print("Bingo!")
+            for com in common:
+                com_n = [0, 0]
+                com_n[0] = com[1] + adjust[0]
+                com_n[1] = com[0] + adjust[1]
+                common_ad.append(com_n)
+            leastPairs = common_ad
     return {
-        "clocation" : [0, 0],
-        "pairs" : []
+        "clocation" : [ncellitem[0], ncellitem[1]],
+        "pairs" : leastPairs
         }
 
 def combineNull(target, reference, null, eptLocation):
@@ -126,7 +138,7 @@ def getAvergaeByLocation(band, locations):
     count = 0
     for lct in locations:
         cellvalue = band.ReadAsArray(lct[0], lct[1], 1, 1)[0][0]
-        print(cellvalue)
+        # print(cellvalue)
         sum = sum + cellvalue
         count = count + 1
     ave = sum/count
@@ -255,42 +267,61 @@ dataset_vege = gdal.Open(vege)
 band_vege = dataset_vege.GetRasterBand(1)
 
 trans = dataset_target.GetGeoTransform()
-print(dataset_target.GetProjection())
+# print(dataset_target.GetProjection())
+
+# Window Size List
+winlist = []
+for item in range(3, range_max, 2):
+    winlist.append(item)
+# winlist = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29]
 
 trans = [trans[0], trans[3], trans[1], trans[5]]
 
+new_buffer = np.array(band_target.ReadAsArray(0, 0, band_target.XSize, band_target.YSize))
 
 nullcells = findNullCell2(band_target, null)
+total = len(nullcells)
+currentProcess = 0
 for ncellitem in nullcells:
     print("Null cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
 
     if band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0] < null:
-        print("Cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference in NULL!")
+        print("Cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference is NULL!")
         continue
 
     pairs = findPairs(band_target, band_reference, band_vege, ncellitem)
 
-    for pair in pairs["pairs"]:
-        print(str(band_reference.ReadAsArray(pair[0], pair[1], 1, 1)[0][0]))
-    for pair in pairs["pairs"]:
-        print(str(band_target.ReadAsArray(pair[0], pair[1], 1, 1)[0][0]))
-    clocation = pairs["clocation"]
-    dis = []
-    for pair in pairs["pairs"]:
-        di = getDi(band_reference, band_vege, pair, clocation, trans)
-        dis.append(di)
+    a = 0
+    b = 0
+    if len(pairs["pairs"]) < 3 and len(pairs["pairs"]) > 0:
+        Ts_ = getAvergaeByLocation(band_target, pairs["pairs"])
+        Tsd_ = getAvergaeByLocation(band_reference, pairs["pairs"])
+        a = Ts_/Tsd_
+    if len(pairs["pairs"]) == 0:
+        print("Cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] can not find any pairs!")
+        continue
+    else:
+        clocation = pairs["clocation"]
+        dis = []
+        for pair in pairs["pairs"]:
+            di = getDi(band_reference, band_vege, pair, clocation, trans)
+            dis.append(di)
 
-    wis = getWi(dis)
+        wis = getWi(dis)
 
-    print(dis)
-    print(wis)
+        a,b = getAB(band_target, band_reference, pairs["pairs"], wis)
 
-    a,b = getAB(band_target, band_reference, pairs["pairs"], wis)
     print("a : " + str(a))
     print("b : " + str(b))
-    
+        
     nullcell_r = band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
 
     completion = a*nullcell_r + b
 
-    print(completion)
+    new_buffer[ncellitem[1], ncellitem[0]] = completion
+
+    print("X:[" + str(ncellitem[0]) + "] Y:[" + str(ncellitem[1]) + "] value:" + str(completion))
+    currentProcess = currentProcess + 1
+    print(str(currentProcess) + "/" + str(total))
+
+zyytif.ZYYTif.WriteTiff(new_buffer, band_target.XSize, band_target.YSize, 1, dataset_target.GetGeoTransform(), dataset_reference.GetProjection(), "./test/new.tif")
