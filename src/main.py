@@ -61,8 +61,13 @@ def findPairs(target, reference, vege, ncellitem):
 
         common = findCommon(cells_r, cells_v)
 
-        # print(common)
+        #! if can not find enough pairs, set tthd = 0.05 and vthd = 0.05
+        if currentwin == winlist[len(winlist) - 1] and len(common) < pairsNum:
+            cells_r = getSimilar(win_reference, clocation_r, ept_r, 0.05)
+            cells_v = getSimilar(win_vege, clocation_v, ept_v, 0.05)
 
+            common = findCommon(cells_r, cells_v)
+        #! judge if common pairs is enough
         if len(common) > pairsNum:
             common_ad = []
             # print("Bingo!")
