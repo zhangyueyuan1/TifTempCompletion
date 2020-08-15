@@ -7,6 +7,7 @@ import gdal
 import zyytif
 import math
 import numpy as np
+import os
 
 gdal.AllRegister()
 
@@ -15,6 +16,7 @@ target = "./test/pro3_A2018017_dagraded_v3.tif"
 
 #! Reference Data
 reference = "./test/pro3_A2018015_lst.tif"
+reference_dir = "./test/refs/"
 
 #! Vegetation Data
 vege = "./test/pro3_MOD13A2.A2018001.tif"
@@ -211,16 +213,16 @@ def getWindowByLocation(band, location, size):
 def getDi(band_r, band_v, location, clocation, trans):
     ts0_ = band_r.ReadAsArray(clocation[0], clocation[1], 1, 1)[0][0]
     tsi_ = band_r.ReadAsArray(location[0], location[1], 1, 1)[0][0]
-    abs1 = round(abs(ts0_ - tsi_ + 0.001), 6)
+    abs1 = round(abs(ts0_ - tsi_ + 0.001), 9)
     
     vs0_ = band_v.ReadAsArray(clocation[0], clocation[1], 1, 1)[0][0]
     vsi_ = band_v.ReadAsArray(location[0], location[1], 1, 1)[0][0]
-    abs2 = round(abs(vs0_ - vsi_ + 0.001), 6)
+    abs2 = round(abs(vs0_ - vsi_ + 0.001), 9)
 
     local_r = [trans[0] + (location[0] + 0.5) * trans[2], trans[1] + (location[1] + 0.5) * trans[3]]
     local_c = [trans[0] + (clocation[0] + 0.5) * trans[2], trans[1] + (clocation[1] + 0.5) * trans[3]]
 
-    dis = round((local_r[0] - local_c[0])*(local_r[0] - local_c[0]) + (local_r[1] - local_c[1])*(local_r[1] - local_c[1]), 6)
+    dis = round((local_r[0] - local_c[0])*(local_r[0] - local_c[0]) + (local_r[1] - local_c[1])*(local_r[1] - local_c[1]), 9)
 
     di = (abs1) * (abs2) * (dis)
 
@@ -231,7 +233,7 @@ def getWi(dis):
 
     sum = 0
     for di in dis:
-        sum = sum + round((1/di), 6)
+        sum = sum + round((1/di), 9)
 
     for di in dis:
         wi = (1/di)/sum
@@ -264,6 +266,10 @@ def getAB(band_target, band_reference, pairs, wis):
 # from target
 dataset_target = gdal.Open(target)
 band_target = dataset_target.GetRasterBand(1)
+
+reference_collection = os.listdir(reference_dir)
+
+
 # from reference
 dataset_reference = gdal.Open(reference)
 band_reference = dataset_reference.GetRasterBand(1)
