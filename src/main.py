@@ -312,11 +312,12 @@ def getAB(band_target, band_reference, pairs, wis):
 #! Start below
 # find all target
 target_file_collection = os.listdir(reference_dir)
-target_collection = []
+all_collection = []
 for target_file in target_file_collection:
     ext = os.path.splitext(target_file)[-1]
     if ext == ".tif":
-        target_collection.append(target_file)
+        all_collection.append(target_file)
+all_collection.sort()
 
 # find all vegetation
 vege_file_collection = os.listdir(vege_dir)
@@ -326,7 +327,7 @@ for vege_file in vege_file_collection:
     if ext == ".tif":
         vege_collection.append(vege_file)
 
-target_collection.sort()
+target_collection = all_collection[0:len(all_collection)-15]
 for target in target_collection:
     # Get bands
     # from target
@@ -345,7 +346,7 @@ for target in target_collection:
         reference_date_str.append(str(time_curr_year) + "{:0>3d}".format(day))
 
     reference_collection = []
-    for referfile in target_collection:
+    for referfile in all_collection:
         ext = os.path.splitext(referfile)[-1]
         if ext == ".tif":
             for ref_date in reference_date_str:
