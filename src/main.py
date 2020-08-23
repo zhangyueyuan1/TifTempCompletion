@@ -40,7 +40,7 @@ def abs(value):
 def findPairs(target, reference, vege, ncellitem):
     result = None
     result = findPairs_dynamic(target, reference, vege, ncellitem)
-    if len(result["pairs"] < 3):
+    if len(result["pairs"]) < 3:
         result = findPairs_fixed(target, reference, vege, ncellitem)
     return result
 
@@ -183,7 +183,8 @@ def getAvergae(win, null, ept):
                 continue
             sum = sum + win[yIndex][xIndex]
             count = count + 1
-    
+    if count < 1:
+        return 0
     sum = sum - ept
     ave = sum/count
     return ave
