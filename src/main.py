@@ -44,7 +44,6 @@ def findPairs(target, reference, vege, ncellitem):
         result = findPairs_fixed(target, reference, vege, ncellitem)
     return result
 
-
 def findPairs_dynamic(target, reference, vege, ncellitem):
     leastPairs = []
     for currentwin in winlist:
@@ -148,7 +147,7 @@ def findPairs_fixed(target, reference, vege, ncellitem):
 def combineNull(target, reference, null, eptLocation):
     for yIndex in range(len(target)):
         for xIndex in range(len(reference)):
-            if yIndex == eptLocation[0] and xIndex == eptLocation[1]:
+            if yIndex == eptLocation[1] and xIndex == eptLocation[0]:
                 continue
             if reference[yIndex][xIndex] < null:
                 target[yIndex][xIndex] = reference[yIndex][xIndex]
@@ -183,12 +182,13 @@ def getAvergae(win, null, ept):
                 continue
             sum = sum + win[yIndex][xIndex]
             count = count + 1
-    if count < 1:
+    if count < 0:
         return 0
+    if count == 0:
+        return ept
     sum = sum - ept
     ave = sum/count
     return ave
-
 
 def getAvergaeByLocation(band, locations):
     sum = 0
@@ -201,7 +201,6 @@ def getAvergaeByLocation(band, locations):
     ave = sum/count
     return ave
 
-
 def getTVthd(win, null, ave, ept):
     sum = 0
     count = -1
@@ -213,8 +212,6 @@ def getTVthd(win, null, ave, ept):
             count = count + 1
     sum = sum - (ept - ave)*(ept - ave)
     return math.sqrt(sum/count)
-    
-
 
 #! find the null cells
 def findNullCell(band, nullValue):
