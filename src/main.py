@@ -363,8 +363,7 @@ for target in target_collection:
 
     trans = [trans[0], trans[3], trans[1], trans[5]]
 
-
-
+    
     new_buffer = np.array(band_target.ReadAsArray(0, 0, band_target.XSize, band_target.YSize))
 
     nullcells = findNullCell2(band_target, null)
