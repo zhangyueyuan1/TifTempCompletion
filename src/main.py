@@ -146,7 +146,7 @@ def findPairs_fixed(target, reference, vege, ncellitem):
 
 def combineNull(target, reference, null, eptLocation):
     for yIndex in range(len(target)):
-        for xIndex in range(len(reference)):
+        for xIndex in range(len(target[0])):
             if yIndex == eptLocation[1] and xIndex == eptLocation[0]:
                 continue
             if reference[yIndex][xIndex] < null:
@@ -251,6 +251,10 @@ def getWindowByLocation(band, location, size):
         ySize = yStart + ySize
         clocation[1] = clocation[1] + yStart
         yStart = 0
+    if (xStart + xSize) > band.XSize:
+        xSize = xSize - (xStart + xSize - band.XSize)
+    if (yStart + ySize) > band.YSize:
+        ySize = ySize - (yStart + ySize - band.YSize)
     win = band.ReadAsArray(xStart, yStart, xSize, ySize)
 
     adjust = [xStart, yStart]
@@ -369,6 +373,7 @@ for target in target_collection:
     nullcells = findNullCell2(band_target, null)
     total = len(nullcells)
     currentProcess = 0
+    # nullcells = [[414, 123]]
     for ncellitem in nullcells:
         print("Null cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
 
