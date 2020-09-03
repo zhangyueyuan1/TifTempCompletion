@@ -408,7 +408,7 @@ for target in target_collection:
             dataset_reference = gdal.Open(reference_dir + reference_file)
             band_reference = dataset_reference.GetRasterBand(1)
             if band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0] < null:
-                print("Cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference is NULL!")
+                print("Cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] is NULL!")
                 continue
 
             pairs = findPairs(band_target, band_reference, band_vege, ncellitem)
