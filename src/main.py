@@ -58,12 +58,12 @@ def findPairs_dynamic(target, reference, vege, ncellitem):
         # similar cells in reference window
         win_vege, clocation_v, adjust_v = getWindowByLocation(vege, ncellitem, currentwin)
         
-        r_ave = getAvergae(win_reference, null, ept_r)
-        tthd = getTVthd(win_reference, null, r_ave, ept_r)
+        r_ave = getAvergae(win_reference, null, clocation_r)
+        tthd = getTVthd(win_reference, null, r_ave, clocation_r)
         # print(tthd)
 
-        v_ave = getAvergae(win_vege, null, ept_v)
-        vthd = getTVthd(win_vege, null, v_ave, ept_v)
+        v_ave = getAvergae(win_vege, null, clocation_r)
+        vthd = getTVthd(win_vege, null, v_ave, clocation_r)
         # print(vthd)
 
         cells_r = getSimilar(win_reference, clocation_r, ept_r, tthd)
@@ -146,7 +146,7 @@ def findPairs_fixed(target, reference, vege, ncellitem):
 
 def combineNull(target, reference, null, eptLocation):
     for yIndex in range(len(target)):
-        for xIndex in range(len(reference)):
+        for xIndex in range(len(target[0])):
             if yIndex == eptLocation[1] and xIndex == eptLocation[0]:
                 continue
             if reference[yIndex][xIndex] < null:
@@ -175,18 +175,17 @@ def getSimilar(win, clocation, cvalue, thd):
 
 def getAvergae(win, null, ept):
     sum = 0
-    count = -1
+    count = 0
     for yIndex in range(len(win)):
         for xIndex in range(len(win[yIndex])):
             if win[yIndex][xIndex] < null:
                 continue
+            if yIndex == ept[1] and xIndex == ept[0]:
+                continue
             sum = sum + win[yIndex][xIndex]
             count = count + 1
-    if count < 0:
-        return 0
     if count == 0:
         return ept
-    sum = sum - ept
     ave = sum/count
     return ave
 
@@ -203,14 +202,17 @@ def getAvergaeByLocation(band, locations):
 
 def getTVthd(win, null, ave, ept):
     sum = 0
-    count = -1
-    for row in win:
-        for cell in row:
-            if cell < null:
+    count = 0
+    for rowIndex in range(len(win)):
+        for cellIndex in range(len(win[rowIndex])):
+            if win[rowIndex][cellIndex] < null:
                 continue
-            sum = sum + (cell - ave)*(cell - ave)
+            if rowIndex == ept[1] and cellIndex == ept[0]:
+                continue
+            sum = sum + (win[rowIndex][cellIndex] - ave)*(win[rowIndex][cellIndex] - ave)
             count = count + 1
-    sum = sum - (ept - ave)*(ept - ave)
+    if count == 0:
+        return 0
     return math.sqrt(sum/count)
 
 #! find the null cells
@@ -251,6 +253,10 @@ def getWindowByLocation(band, location, size):
         ySize = yStart + ySize
         clocation[1] = clocation[1] + yStart
         yStart = 0
+    if (xStart + xSize) > band.XSize:
+        xSize = xSize - (xStart + xSize - band.XSize)
+    if (yStart + ySize) > band.YSize:
+        ySize = ySize - (yStart + ySize - band.YSize)
     win = band.ReadAsArray(xStart, yStart, xSize, ySize)
 
     adjust = [xStart, yStart]
@@ -369,6 +375,10 @@ for target in target_collection:
     nullcells = findNullCell2(band_target, null)
     total = len(nullcells)
     currentProcess = 0
+
+    #! Debug line
+    # nullcells = [[238,148]]
+
     for ncellitem in nullcells:
         print("Null cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
 
