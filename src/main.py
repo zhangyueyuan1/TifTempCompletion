@@ -89,8 +89,8 @@ def findPairs_dynamic(target, reference, vege, ncellitem):
             # print("Bingo!")
             for com in common:
                 com_n = [0, 0]
-                com_n[0] = com[1] + adjust[0]
-                com_n[1] = com[0] + adjust[1]
+                com_n[0] = com[0] + adjust[0]
+                com_n[1] = com[1] + adjust[1]
                 common_ad.append(com_n)
             leastPairs = common_ad
     return {
@@ -331,8 +331,10 @@ for vege_file in vege_file_collection:
     if ext == ".tif":
         vege_collection.append(vege_file)
 
-target_collection = all_collection[0:len(all_collection)-15]
+target_collection = all_collection[0:len(all_collection) - 15]
+fileProgress = 0
 for target in target_collection:
+    fileProgress = fileProgress + 1
     # Get bands
     # from target
     dataset_target = gdal.Open(reference_dir + target)
@@ -374,13 +376,13 @@ for target in target_collection:
 
     nullcells = findNullCell2(band_target, null)
     total = len(nullcells)
-    currentProcess = 0
+    currentProgress = 0
 
     #! Debug line
     # nullcells = [[238,148]]
 
     for ncellitem in nullcells:
-        print("Null cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
+        print("[" + target + "] start calculate NULL cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
 
         # from reference
         band_reference = None
@@ -408,7 +410,7 @@ for target in target_collection:
             dataset_reference = gdal.Open(reference_dir + reference_file)
             band_reference = dataset_reference.GetRasterBand(1)
             if band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0] < null:
-                print("Cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] is NULL!")
+                print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] is NULL!")
                 continue
 
             pairs = findPairs(band_target, band_reference, band_vege, ncellitem)
@@ -427,7 +429,7 @@ for target in target_collection:
             Tsd_ = getAvergaeByLocation(band_reference, pairs["pairs"])
             a = Ts_/Tsd_
         if len(pairs["pairs"]) == 0:
-            print("Cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] can not find any pairs!")
+            print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] can not find any pairs!")
             continue
         else:
             clocation = pairs["clocation"]
@@ -440,8 +442,8 @@ for target in target_collection:
 
             a,b = getAB(band_target, band_reference, pairs["pairs"], wis)
 
-        print("a : " + str(a))
-        print("b : " + str(b))
+        print("[" + target + "] a : [" + str(a) + "]")
+        print("[" + target + "] b : [" + str(b) + "]")
             
         nullcell_r = band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
 
@@ -449,8 +451,9 @@ for target in target_collection:
 
         new_buffer[ncellitem[1], ncellitem[0]] = completion
 
-        print("X:[" + str(ncellitem[0]) + "] Y:[" + str(ncellitem[1]) + "] value:" + str(completion))
-        currentProcess = currentProcess + 1
-        print(str(currentProcess) + "/" + str(total))
+        print("[" + target + "] X:[" + str(ncellitem[0]) + "] Y:[" + str(ncellitem[1]) + "] value:" + str(completion))
+        currentProgress = currentProgress + 1
+        print("[" + target + "] progress : " + "[" + str(currentProgress) + "/" + str(total) + "]")
 
     zyytif.ZYYTif.WriteTiff(new_buffer, band_target.XSize, band_target.YSize, 1, dataset_target.GetGeoTransform(), dataset_reference.GetProjection(), "./test/new_" + time_curr_str + ".tif")
+    print("File : [" + target + "] finished! Progress : [" + str(fileProgress) + "/" + str(len(target_collection)) + "]")
