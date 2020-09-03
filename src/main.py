@@ -77,8 +77,8 @@ def findPairs_dynamic(target, reference, vege, ncellitem):
             # print("Bingo!")
             for com in common:
                 com_n = [0, 0]
-                com_n[0] = com[1] + adjust[0]
-                com_n[1] = com[0] + adjust[1]
+                com_n[0] = com[0] + adjust[0]
+                com_n[1] = com[1] + adjust[1]
                 common_ad.append(com_n)
             return {
                 "clocation" : [ncellitem[0], ncellitem[1]],
@@ -165,12 +165,12 @@ def getSimilar(win, clocation, cvalue, thd):
     cells = []
     for yIndex in range(len(win)):
         for xIndex in range(len(win[yIndex])):
-            if yIndex == clocation[0] and xIndex == clocation[1]:
+            if yIndex == clocation[1] and xIndex == clocation[0]:
                 continue
             if win[yIndex][xIndex] < null:
                 continue
             if abs(win[yIndex][xIndex] - cvalue) < thd:
-                cells.append([yIndex, xIndex])
+                cells.append([xIndex, yIndex])
     return cells
 
 def getAvergae(win, null, ept):
@@ -275,7 +275,7 @@ def getDi(band_r, band_v, location, clocation, trans):
     local_r = [trans[0] + (location[0] + 0.5) * trans[2], trans[1] + (location[1] + 0.5) * trans[3]]
     local_c = [trans[0] + (clocation[0] + 0.5) * trans[2], trans[1] + (clocation[1] + 0.5) * trans[3]]
 
-    dis = round((local_r[0] - local_c[0])*(local_r[0] - local_c[0]) + (local_r[1] - local_c[1])*(local_r[1] - local_c[1]), 9)
+    dis = round((local_r[0] - local_c[0])*(local_r[0] - local_c[0]) + (local_r[1] - local_c[1])*(local_r[1] - local_c[1]), 20)
 
     di = (abs1) * (abs2) * (dis)
 
@@ -412,9 +412,8 @@ for target in target_collection:
                 continue
 
             pairs = findPairs(band_target, band_reference, band_vege, ncellitem)
-            if len(pairs["pairs"]) < 1:
-                continue
-            elif len(pairs["pairs"]) > 2:
+
+            if len(pairs["pairs"]) > 2:
                 break
 
         if band_reference == None:
