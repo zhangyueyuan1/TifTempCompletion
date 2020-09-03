@@ -404,6 +404,8 @@ for target in target_collection:
             pairs = findPairs(band_target, band_reference, band_vege, ncellitem)
             if len(pairs["pairs"]) < 1:
                 continue
+            elif len(pairs["pairs"]) > 2:
+                break
 
         if band_reference == None:
             continue
