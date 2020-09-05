@@ -412,10 +412,13 @@ for target in target_collection:
             if band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0] < null:
                 print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] is NULL!")
                 continue
+            else:
+                print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] is assigned!")
 
             pairs = findPairs(band_target, band_reference, band_vege, ncellitem)
 
             if len(pairs["pairs"]) > 2:
+                print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] find enough pairs (>2)!")
                 break
 
         if band_reference == None:
