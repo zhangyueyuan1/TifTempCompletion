@@ -431,7 +431,7 @@ for target in target_collection:
 
         if band_reference == None:
             continue
-        if len(len(leastPairs["pairs"]) > pairs["pairs"]):
+        if len(leastPairs["pairs"]) > len(pairs["pairs"]):
             pairs = leastPairs
 
 
