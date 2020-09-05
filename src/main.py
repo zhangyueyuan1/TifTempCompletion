@@ -426,7 +426,7 @@ for target in target_collection:
                 break
             elif len(pairs["pairs"]) > 0:
                 print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] find a few pairs (>0 <2)!")
-                if len(len(pairs["pairs"]) > leastPairs["pairs"]):
+                if len(pairs["pairs"]) > len(leastPairs["pairs"]):
                     leastPairs = pairs
 
         if band_reference == None:
