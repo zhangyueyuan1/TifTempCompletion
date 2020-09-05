@@ -123,8 +123,8 @@ def findPairs_fixed(target, reference, vege, ncellitem):
             # print("Bingo!")
             for com in common:
                 com_n = [0, 0]
-                com_n[0] = com[1] + adjust[0]
-                com_n[1] = com[0] + adjust[1]
+                com_n[0] = com[0] + adjust[0]
+                com_n[1] = com[1] + adjust[1]
                 common_ad.append(com_n)
             return {
                 "clocation" : [ncellitem[0], ncellitem[1]],
@@ -135,8 +135,8 @@ def findPairs_fixed(target, reference, vege, ncellitem):
             # print("Bingo!")
             for com in common:
                 com_n = [0, 0]
-                com_n[0] = com[1] + adjust[0]
-                com_n[1] = com[0] + adjust[1]
+                com_n[0] = com[0] + adjust[0]
+                com_n[1] = com[1] + adjust[1]
                 common_ad.append(com_n)
             leastPairs = common_ad
     return {
