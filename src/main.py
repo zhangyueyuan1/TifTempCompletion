@@ -390,6 +390,10 @@ for target in target_collection:
             "clocation" : [ncellitem[0], ncellitem[1]],
             "pairs" : []
         }
+        leastPairs = {
+            "clocation" : [ncellitem[0], ncellitem[1]],
+            "pairs" : []
+        }
         for reference_file in reference_collection:
 
             # find corresponding vegetation file
@@ -420,9 +424,15 @@ for target in target_collection:
             if len(pairs["pairs"]) > 2:
                 print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] find enough pairs (>2)!")
                 break
+            elif len(pairs["pairs"]) > 0:
+                print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] find a few pairs (>0 <2)!")
+                if len(len(pairs["pairs"]) > leastPairs["pairs"]):
+                    leastPairs = pairs
 
         if band_reference == None:
             continue
+        if len(len(leastPairs["pairs"]) > pairs["pairs"]):
+            pairs = leastPairs
 
 
         a = 0
@@ -432,7 +442,7 @@ for target in target_collection:
             Tsd_ = getAvergaeByLocation(band_reference, pairs["pairs"])
             a = Ts_/Tsd_
         if len(pairs["pairs"]) == 0:
-            print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] can not find any pairs!")
+            print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] can not find any pairs (<1)!")
             continue
         else:
             clocation = pairs["clocation"]
@@ -445,8 +455,8 @@ for target in target_collection:
 
             a,b = getAB(band_target, band_reference, pairs["pairs"], wis)
 
-        print("[" + target + "] a : [" + str(a) + "]")
-        print("[" + target + "] b : [" + str(b) + "]")
+        print("[" + target + "] in cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] a : [" + str(a) + "]")
+        print("[" + target + "] in cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] b : [" + str(b) + "]")
             
         nullcell_r = band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
 
