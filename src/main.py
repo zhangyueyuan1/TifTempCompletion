@@ -335,6 +335,8 @@ for vege_file in vege_file_collection:
 target_collection = all_collection[0:len(all_collection) - 15]
 fileProgress = 0
 for target in target_collection:
+    # if target == "MOD11A1.A2018001.tif":
+    #     continue
     fileProgress = fileProgress + 1
     # Get bands
     # from target
@@ -386,7 +388,7 @@ for target in target_collection:
     normallist = []
 
     for ncellitem in nullcells:
-        # if ncellitem[0] < 32 or ncellitem[1] < 25:
+        # if ncellitem[0] < 20 or ncellitem[1] < 32:
         #     continue
         print("[" + target + "] start calculate NULL cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
 
@@ -437,7 +439,10 @@ for target in target_collection:
                 if len(pairs["pairs"]) > len(leastPairs["pairs"]):
                     leastPairs = pairs
                     current_reference = reference_file
+            else:
+                print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] can not find any pairs!")
         if current_reference == None:
+            print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] can not find any pairs (<1)!")
             continue
 
         if len(leastPairs["pairs"]) > len(pairs["pairs"]):
