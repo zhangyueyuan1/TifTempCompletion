@@ -8,6 +8,7 @@ import zyytif
 import math
 import numpy as np
 import os
+import copy
 
 gdal.AllRegister()
 
@@ -385,8 +386,8 @@ for target in target_collection:
     normallist = []
 
     for ncellitem in nullcells:
-        if ncellitem[1] < 25:
-            continue
+        # if ncellitem[0] < 32 or ncellitem[1] < 25:
+        #     continue
         print("[" + target + "] start calculate NULL cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
 
         # from reference
@@ -429,27 +430,28 @@ for target in target_collection:
 
             if len(pairs["pairs"]) > 2:
                 print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] find enough pairs (>2)!")
-                current_reference = band_reference
+                current_reference = reference_file
                 break
             elif len(pairs["pairs"]) > 0:
                 print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] find a few pairs (>0 <2)!")
                 if len(pairs["pairs"]) > len(leastPairs["pairs"]):
                     leastPairs = pairs
-                    current_reference = band_reference
-
-        if band_reference == None:
+                    current_reference = reference_file
+        if current_reference == None:
             continue
+
         if len(leastPairs["pairs"]) > len(pairs["pairs"]):
             pairs = leastPairs
-        band_reference = current_reference
 
         a = 0
         b = 0
+        dataset_reference = gdal.Open(reference_dir + current_reference)
+        band_reference = dataset_reference.GetRasterBand(1)
         if len(pairs["pairs"]) < 3 and len(pairs["pairs"]) > 0:
             Ts_ = getAvergaeByLocation(band_target, pairs["pairs"])
             Tsd_ = getAvergaeByLocation(band_reference, pairs["pairs"])
             a = Ts_/Tsd_
-        if len(pairs["pairs"]) == 0:
+        elif len(pairs["pairs"]) == 0:
             print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] can not find any pairs (<1)!")
             continue
         else:
