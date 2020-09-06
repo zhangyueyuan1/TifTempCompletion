@@ -305,7 +305,7 @@ def getAB(band_target, band_reference, pairs, wis):
     for index in range(len(pairs)):
         Tsi = band_target.ReadAsArray(pairs[index][0], pairs[index][1], 1, 1)[0][0]
         Tsdi = band_reference.ReadAsArray(pairs[index][0], pairs[index][1], 1, 1)[0][0]
-        sum_up = sum_up + wis[index]*(Tsi - Ts_)*(Tsdi - Tsd_)
+        sum_up = sum_up + wis[index]*(round(Tsi, 12) - round(Ts_, 12))*(round(Tsdi, 12) - round(Tsd_, 12))
         sum_bottom = sum_bottom + wis[index]*(Tsdi - Tsd_)*(Tsdi - Tsd_)
 
     a = sum_up/sum_bottom
@@ -381,7 +381,12 @@ for target in target_collection:
     #! Debug line
     # nullcells = [[238,148]]
 
+    errorlist = []
+    normallist = []
+
     for ncellitem in nullcells:
+        if ncellitem[1] < 25:
+            continue
         print("[" + target + "] start calculate NULL cell : [" + str(ncellitem[0]) + "], [" + str(ncellitem[1]) + "]")
 
         # from reference
@@ -394,6 +399,7 @@ for target in target_collection:
             "clocation" : [ncellitem[0], ncellitem[1]],
             "pairs" : []
         }
+        current_reference = None
         for reference_file in reference_collection:
 
             # find corresponding vegetation file
@@ -423,17 +429,19 @@ for target in target_collection:
 
             if len(pairs["pairs"]) > 2:
                 print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] find enough pairs (>2)!")
+                current_reference = band_reference
                 break
             elif len(pairs["pairs"]) > 0:
                 print("[" + target + "] cell [" + str(ncellitem[0]) + "],[" + str(ncellitem[1]) + "] in reference [" + reference_file + "] find a few pairs (>0 <2)!")
                 if len(pairs["pairs"]) > len(leastPairs["pairs"]):
                     leastPairs = pairs
+                    current_reference = band_reference
 
         if band_reference == None:
             continue
         if len(leastPairs["pairs"]) > len(pairs["pairs"]):
             pairs = leastPairs
-
+        band_reference = current_reference
 
         a = 0
         b = 0
@@ -461,6 +469,17 @@ for target in target_collection:
         nullcell_r = band_reference.ReadAsArray(ncellitem[0], ncellitem[1], 1, 1)[0][0]
 
         completion = a*nullcell_r + b
+
+        if completion > 275:
+            normallist.append({
+                "value" : completion,
+                "location" : ncellitem
+            })
+        else:
+            errorlist.append({
+                "value" : completion,
+                "location" : ncellitem
+            })
 
         new_buffer[ncellitem[1], ncellitem[0]] = completion
 
